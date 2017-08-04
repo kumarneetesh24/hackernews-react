@@ -57,15 +57,15 @@ class App extends Component {
           <input type="text" onChange = { this.onSearch } />
         </form>
         { this.state.list.filter(isSearch(this.state.searchTerm)).map(item =>
-            <div key = {item.objectID}>
-              <span>
-                <a href={item.url}>{item.title}</a>
-              </span>
-              <span>{item.author}</span>
-              <span>{item.num_comments}</span>
-              <span>{item.points}</span>
-              <span><button onClick = { () => this.onDismiss(item.objectID) }>Dismiss</button></span>
-            </div>
+          <div key = {item.objectID}>
+            <span>
+              <a href={item.url}>{item.title}</a>
+            </span>
+            <span>{item.author}</span>
+            <span>{item.num_comments}</span>
+            <span>{item.points}</span>
+            <span><button onClick = { () => this.onDismiss(item.objectID) }>Dismiss</button></span>
+          </div>
         )}
       </div>
     );
