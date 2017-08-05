@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 // import logo from './logo.svg';
 import './App.css';
 
-const DEFAULT_QUERY = 'redux';
+const DEFAULT_QUERY = 'react';
 const DEFAULT_PAGE = 0;
 const DEFAULT_HPP = '50';
 
@@ -26,7 +26,8 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      list  : null,
+      lists  : null,
+      searchKey : '',
       searchTerm : DEFAULT_QUERY
     };
     this.onDismiss = this.onDismiss.bind(this);
@@ -34,16 +35,25 @@ class App extends Component {
     this.setTopStories = this.setTopStories.bind(this);
     this.fetchTopStories = this.fetchTopStories.bind(this);
     this.onSearchSubmit = this.onSearchSubmit.bind(this);
+    this.needsToSearch = this.needsToSearch.bind(this);
+  }
+
+  needsToSearch(searchTerm){
+    return !this.state.lists[searchTerm];
   }
 
   setTopStories(list) {
     const { hits, page} = list;
-    const oldHits = page !== 0
-    ? this.state.list.hits
-    : [];
+    const { searchKey, lists } = this.state;
+    const oldHits = lists && lists[searchKey]
+      ? lists[searchKey].hits
+      : [];
     const newHits = [ ...oldHits, ...hits];
     this.setState({
-      list : {hits : newHits, page}
+      lists : {
+        ...lists,
+        [searchKey] :{hits : newHits, page}
+      }
     });
   }
 
@@ -57,35 +67,52 @@ class App extends Component {
 
   componentDidMount() {
       const { searchTerm } = this.state;
+      this.setState({searchKey : searchTerm });
       this.fetchTopStories(searchTerm,DEFAULT_PAGE);
   }
 
   onSearchSubmit(event) {
       const { searchTerm } = this.state;
-      this.fetchTopStories(searchTerm,DEFAULT_PAGE);
+      // react does not guarantee that state change are applied immediately
+      // React may delay it, and then update several components in a single pass
+      this.setState({searchKey : searchTerm });
+      if (this.needsToSearch(searchTerm)) {
+        this.fetchTopStories(searchTerm,DEFAULT_PAGE);
+      }
       event.preventDefault();
   }
+
   onSearch(event) {
     this.setState({searchTerm: event.target.value});
   }
+
   onDismiss(id) {
-      const uList = this.state.list.hits.filter(item => item.objectID !== id);
-      // ES5 object.assign
-      // this.setState({list : Object.assign({},this.state.list,{hits: uList })});
-      this.setState({ list : { ...this.state.list, hits: uList}});
+    const { searchKey, lists } = this.state;
+    const {hits, page} = lists[searchKey];
+    const uList = hits.filter(item => item.objectID !== id);
+    // ES5 object.assign
+    // this.setState({list : Object.assign({},this.state.list,{hits: uList })});
+    this.setState({
+      lists : {
+        ...lists,
+        [searchKey]: { hits: uList, page}
+      }
+    });
   }
 
   render() {
-    const { list,searchTerm } = this.state;
-    const page = (list && list.page) || 0
+    const { lists,searchKey,searchTerm } = this.state;
+    const page = (lists && lists[searchKey] && lists[searchKey].page) || 0;
+    const hits = (lists && lists[searchKey] && lists[searchKey].hits) || [];
+
     return (
       <div className="page">
         <div className="interactions">
           <Search value = {searchTerm} onChange = {this.onSearch} onSubmit = {this.onSearchSubmit}> search </Search>
         </div>
-        { list && <Table list = {list.hits} onDismiss = {this.onDismiss} /> }
+        <Table list = {hits} onDismiss = {this.onDismiss} />
         <div className = "interactions">
-          <button onClick={() => this.fetchTopStories(searchTerm, page+1)}> Load More</button>
+          <button onClick={() => this.fetchTopStories(searchKey, page+1)}> Load More</button>
         </div>
       </div>
     );
