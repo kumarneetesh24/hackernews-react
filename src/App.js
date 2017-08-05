@@ -3,12 +3,18 @@ import React, { Component } from 'react';
 import './App.css';
 
 const DEFAULT_QUERY = 'redux';
+const DEFAULT_PAGE = 0;
+const DEFAULT_HPP = '50';
+
 const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
+const PARAM_PAGE = 'page=';
+const PARAM_HPP = 'hitsPerPage=';
 
-const isSearch = (searchTerm) => (item) =>
-    !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase());
+// filter list on client side
+// const isSearch = (searchTerm) => (item) =>
+//     !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase());
 // ES5
 // function isSearch(searchTerm) {
 //   return function(item) {
@@ -31,11 +37,18 @@ class App extends Component {
   }
 
   setTopStories(list) {
-    this.setState({list});
+    const { hits, page} = list;
+    const oldHits = page !== 0
+    ? this.state.list.hits
+    : [];
+    const newHits = [ ...oldHits, ...hits];
+    this.setState({
+      list : {hits : newHits, page}
+    });
   }
 
-  fetchTopStories(searchTerm) {
-    const path = PATH_BASE + PATH_SEARCH + '?' + PARAM_SEARCH + searchTerm;
+  fetchTopStories(searchTerm,page) {
+    const path = PATH_BASE+PATH_SEARCH+'?'+PARAM_SEARCH+searchTerm+'&'+PARAM_PAGE+page+'&'+PARAM_HPP+DEFAULT_HPP;
     fetch(path)
     .then(response => response.json())
     .then(list => this.setTopStories(list))
@@ -44,12 +57,12 @@ class App extends Component {
 
   componentDidMount() {
       const { searchTerm } = this.state;
-      this.fetchTopStories(searchTerm);
+      this.fetchTopStories(searchTerm,DEFAULT_PAGE);
   }
 
   onSearchSubmit(event) {
       const { searchTerm } = this.state;
-      this.fetchTopStories(searchTerm);
+      this.fetchTopStories(searchTerm,DEFAULT_PAGE);
       event.preventDefault();
   }
   onSearch(event) {
@@ -64,12 +77,16 @@ class App extends Component {
 
   render() {
     const { list,searchTerm } = this.state;
+    const page = (list && list.page) || 0
     return (
       <div className="page">
         <div className="interactions">
           <Search value = {searchTerm} onChange = {this.onSearch} onSubmit = {this.onSearchSubmit}> search </Search>
         </div>
         { list && <Table list = {list.hits} onDismiss = {this.onDismiss} /> }
+        <div className = "interactions">
+          <button onClick={() => this.fetchTopStories(searchTerm, page+1)}> Load More</button>
+        </div>
       </div>
     );
   }
