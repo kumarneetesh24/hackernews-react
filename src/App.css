@@ -41,13 +41,16 @@
   text-overflow: ellipsis;
   padding: 0 5px;
 }
+.button-inline:hover {
+  color: #fff;
+}
 .button-inline {
-  border-width: 0;
-  background: transparent;
-  color: inherit;
+  border-radius: 0px;
+  background: #E53935;
+  color : white;
   text-align: inherit;
   -webkit-font-smoothing: inherit;
-  padding: 0;
+  padding: 5px;
   font-size: inherit;
   cursor: pointer;
 }
