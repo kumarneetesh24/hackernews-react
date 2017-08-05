@@ -27,6 +27,7 @@ class App extends Component {
     this.onSearch = this.onSearch.bind(this);
     this.setTopStories = this.setTopStories.bind(this);
     this.fetchTopStories = this.fetchTopStories.bind(this);
+    this.onSearchSubmit = this.onSearchSubmit.bind(this);
   }
 
   setTopStories(list) {
@@ -46,40 +47,47 @@ class App extends Component {
       this.fetchTopStories(searchTerm);
   }
 
+  onSearchSubmit(event) {
+      const { searchTerm } = this.state;
+      this.fetchTopStories(searchTerm);
+      event.preventDefault();
+  }
   onSearch(event) {
     this.setState({searchTerm: event.target.value});
   }
   onDismiss(id) {
-      const uList = this.state.list.filter(item => item.objectID !== id);
-      this.setState({list : uList});
+      const uList = this.state.list.hits.filter(item => item.objectID !== id);
+      // ES5 object.assign
+      // this.setState({list : Object.assign({},this.state.list,{hits: uList })});
+      this.setState({ list : { ...this.state.list, hits: uList}});
   }
 
   render() {
     const { list,searchTerm } = this.state;
-    if( list == null ) { return null; }
     return (
       <div className="page">
         <div className="interactions">
-          <Search value = {searchTerm} onChange = {this.onSearch} > search </Search>
+          <Search value = {searchTerm} onChange = {this.onSearch} onSubmit = {this.onSearchSubmit}> search </Search>
         </div>
-        <Table list = {list.hits} term = {searchTerm} onDismiss = {this.onDismiss} />
+        { list && <Table list = {list.hits} onDismiss = {this.onDismiss} /> }
       </div>
     );
   }
 }
 
-const Search = ({value,onChange,children}) => {
+const Search = ({value,onSubmit,onChange,children}) => {
    return (
-     <form>
-       {children}<input type="text" onChange = { onChange } value = {value} />
+     <form onSubmit = {onSubmit}>
+       <input type="text" onChange = { onChange } value = {value} />
+       <button type = "submit">{children}</button>
      </form>
    );
 };
 
-const Table = ({list, term, onDismiss}) => {
+const Table = ({list, onDismiss}) => {
   return (
     <div className = "table">
-      { list.filter(isSearch(term)).map(item =>
+      { list.map(item =>
         <div key = {item.objectID} className = "table-row">
           <span style={{ width: '40%' }}>
             <a href={item.url}>{item.title}</a>
