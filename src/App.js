@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 // import logo from './logo.svg';
 import './App.css';
 
@@ -157,10 +158,31 @@ const Table = ({list, onDismiss}) => {
   );
 };
 
-const Button = ({ onClick, className = '', children }) =>  {
+const Button = ({ onClick, className, children }) =>  {
   return(
       <button onClick={onClick} className = {className} type="button" > {children} </button>
   );
 };
 
+// Button.propTypes = {
+//   onClick : PropTypes.func.isRequired,
+//   className : PropTypes.string,
+//   children : PropTypes.node.isRequired
+// };
+//
+// Button.defaultProps = {
+//   className : '',
+// };
+//
+// Table.propTypes = {
+//   list : PropTypes.array.isRequired,
+//   onDismiss : PropTypes.func.isRequired
+// };
+
 export default App;
+
+export {
+  Button,
+  Search,
+  Table,
+}
